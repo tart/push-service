@@ -1,0 +1,4 @@
+{
+    "mongoConnectionString": "mongodb://localhost/push-service",
+    "certificateRoot": "./certificates"
+}

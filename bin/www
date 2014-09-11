@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+var argv = require('optimist').argv,
+    config = global.config = require(argv.config || '../config.json'),
+    debug = require('debug')('push-service'),
+    app = require('../app');
+
+app.set('port', argv.port || 3000);
+
+var server = app.listen(app.get('port'), function() {
+  debug('Push Service listening on port ' + server.address().port);
+});
