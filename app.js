@@ -28,12 +28,12 @@ var authenticationMiddleware = function(req, res, next) {
         return res.status(417).end();
 
     // Get the app
-    App.findOne({name: app}, function(err, aApp) {
+    App.findOne({name: app}, function(err, data) {
         if (err)
             return res.status(500).end();
 
         // Is request ip allowed?
-        if ((aApp.ips || []).indexOf(ip) > -1)
+        if (data && ((data.ips || []).indexOf(ip) > -1))
             next();
         else 
             res.status(401).end();
