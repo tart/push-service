@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 var authenticationMiddleware = function(req, res, next) {
     var app = res.locals.app = req.get('X-App-Name'),
-        ip = req.ip || req.connection.remoteAddress;
+        ip = req.get('X-Real-IP') || req.get('X-Forwarded-For') || req.ip || req.connection.remoteAdress;
 
     // Check the app name
     if (!app)
