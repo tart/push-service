@@ -24,41 +24,41 @@ PushController.send = function(req, res) {
     if (!!userIds && _.isArray(userIds))
         matchQuery = { userId: {$in: req.body.userIds}, app: res.locals.app };
 
-    User.aggregate([
-        { $match: matchQuery },
-        { $group: { _id: '$locale', devices: {$push: '$devices'}}}],
-      function (err, response) {
+    // Get push service of the app
+    PushServiceManager.get(res.locals.app, function(err, pushService) {
+        if (err)
+            return res.status(500).end();
 
-        var tasks = response.map(function(item) {
-            return function(callback) {
+        // Get devices from target users
+        User.aggregate(
+            [
+                { $match: matchQuery },
+                { $group: { _id: '$locale', devices: {$push: '$devices'}}}
+            ],
+            function (err, response) {
+                if (err)
+                    return res.status(500).end();
 
-                var locale = item._id,
-                    devices = _.flatten(item.devices);
+                for (var locale in response) {
+                    var devices = _.flatten(response[locale].devices),
+                        text = null;
 
-                //send devices
-                PushServiceManager.get(res.locals.app, function(err, pushService) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    var text;
+                    // Handle if message is just string
                     if (typeof req.body.message == 'string')
                         text = req.body.message;
                     else if (req.body.message[locale])
                         text = req.body.message[locale];
 
+                    // Send
                     if (text)
                         pushService.send(devices, text);
+                }
 
-                    callback();
-                });
+                res.status(200).end();
             }
-        });
-
-        async.series(tasks, function(err, resp) {
-            res.status(err ? 500 : 200).end();  
-        });
+        );
     });
+
 };
 
 
