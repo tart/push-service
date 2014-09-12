@@ -41,10 +41,10 @@ PushController.send = function(req, res) {
 
                 var text = null, payload = null;
 
-                if(typeof req.body.message == 'string')
+                if (typeof req.body.message == 'string')
                     text = req.body.message;
 
-                if(typeof req.body.payload == 'string' || typeof req.body.payload == 'object')
+                if (typeof req.body.payload == 'string' || typeof req.body.payload == 'object')
                     payload = req.body.payload;
 
                 response.forEach(function(item) {
@@ -52,7 +52,7 @@ PushController.send = function(req, res) {
                         devices = _.flatten(item.devices);
 
                     // Handle if message is an object
-                    if(req.body.message[locale])
+                    if (req.body.message[locale])
                         text = req.body.message[locale];
 
                     // Send

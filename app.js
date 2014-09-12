@@ -42,6 +42,7 @@ var authenticationMiddleware = function(req, res, next) {
 // Routes
 app.get('/', function(req, res) { res.json({}); });
 app.put('/user/:userId', authenticationMiddleware, UserController.upsert);
+app.post('/user', authenticationMiddleware, UserController.upsert);
 app.delete('/user/:userId/device', authenticationMiddleware, UserController.deleteDevice);
 app.delete('/user/:userId', authenticationMiddleware, UserController.delete);
 app.post('/message', authenticationMiddleware, PushController.send);

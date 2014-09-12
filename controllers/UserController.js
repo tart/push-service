@@ -9,27 +9,34 @@ var User = require('../models/User'),
  * @param {Object} res
  */
 UserController.upsert = function(req, res) {
-    if (!req.params.userId || !req.body.locale || !req.body.device)
+    if (!req.body.locale || !req.body.device)
         return res.status(400).end();
 
-    User.findOneAndUpdate({
-        userId: req.params.userId,
-        app: res.locals.app,
-    }, {
-        userId: req.params.userId,
-        app: res.locals.app,
-        locale: req.body.locale,
-        $addToSet: {
-            devices: {
-                type: req.body.device.type, 
-                token: req.body.device.token
+    var searchQuery = {app: res.locals.app}, updateId = null;
+    if (!!req.params.userId) {
+        searchQuery.userId = req.params.userId;
+        updateId = req.params.userId;
+    } else {
+        searchQuery.devices = {$elemMatch: {token: req.body.device.token}};
+        updateId = 'anonymous' + new Date().getTime();
+    }
+
+    User.findOneAndUpdate(searchQuery, {
+            userId: updateId,
+            app: res.locals.app,
+            locale: req.body.locale,
+            $addToSet: {
+                devices: {
+                    type: req.body.device.type,
+                    token: req.body.device.token
+                }
             }
-        }
-    }, {
-        upsert: true
-    }, function(err, response) {
-        res.status(err ? 500 : 200).end();
-    })
+        }, {
+            upsert: true
+        }, function(err) {
+            console.log(err);
+            res.status(err ? 500 : 200).end();
+        });
 };
 
 
