@@ -39,19 +39,21 @@ PushController.send = function(req, res) {
                 if (err)
                     return res.status(500).end();
 
+                var text = null, payload = null;
+
+                if(typeof req.body.message == 'string')
+                    text = req.body.message;
+
+                if(typeof req.body.payload == 'string' || typeof req.body.payload == 'object')
+                    payload = req.body.payload;
+
                 response.forEach(function(item) {
                     var locale = item._id,
-                        devices = _.flatten(item.devices),
-                        text = null, payload = null;
+                        devices = _.flatten(item.devices);
 
-                    // Handle if message is just string
-                    if(typeof req.body.message == 'string')
-                        text = req.body.message;
-                    else if(req.body.message[locale])
+                    // Handle if message is an object
+                    if(req.body.message[locale])
                         text = req.body.message[locale];
-
-                    if(typeof req.body.payload == 'string' || typeof req.body.payload == 'object')
-                        payload = req.body.payload;
 
                     // Send
                     if (text)
