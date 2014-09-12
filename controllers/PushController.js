@@ -1,4 +1,5 @@
 var async = require('async'),
+    _ = require('lodash'),
     App = require('../models/App'),
     User = require('../models/User'),
     PushServiceManager = require('../models/PushServiceManager'),
@@ -6,51 +7,58 @@ var async = require('async'),
 
 
 /**
- * 
+ * Push controller send action.
  * @param {Object} req
  * @param {Object} res
  */
 PushController.send = function(req, res) {
-    if (!req.body.message || typeof req.body.message != 'object')
+    if (!req.body.message)
         return res.status(400).end();
 
+    // Handle if userIds is just string of single user id.
+    var userIds = req.body.userIds;
+    if (typeof req.body.userIds == 'string')
+        userIds = [userIds];
+
     var matchQuery = {app: res.locals.app};
-    if (!!req.body.userIds && _.isArray(req.body.userIds))
+    if (!!userIds && _.isArray(userIds))
         matchQuery = { userId: {$in: req.body.userIds}, app: res.locals.app };
 
-    User.aggregate([
-        { $match: matchQuery },
-        { $group: { _id: '$locale', devices: {$push: '$devices'}}}],
-      function (err, response) {
+    // Get push service of the app
+    PushServiceManager.get(res.locals.app, function(err, pushService) {
+        if (err)
+            return res.status(500).end();
 
-        var tasks = response.map(function(item) {
-            return function(callback) {
+        // Get devices from target users
+        User.aggregate(
+            [
+                { $match: matchQuery },
+                { $group: { _id: '$locale', devices: {$push: '$devices'}}}
+            ],
+            function (err, response) {
+                if (err)
+                    return res.status(500).end();
 
-                var locale = item._id;
-                var devices = [];
-                
-                item.devices.forEach(function(device) {
-                    devices = devices.concat(device);
-                });
+                for (var locale in response) {
+                    var devices = _.flatten(response[locale].devices),
+                        text = null;
 
-                //send devices
-                PushServiceManager.get(res.locals.app, function(err, pushService) {
-                    if (err) {
-                        return callback(err);
-                    }
+                    // Handle if message is just string
+                    if (typeof req.body.message == 'string')
+                        text = req.body.message;
+                    else if (req.body.message[locale])
+                        text = req.body.message[locale];
 
-                    if (req.body.message[locale])
-                        pushService.send(devices, req.body.message[locale]);
+                    // Send
+                    if (text)
+                        pushService.send(devices, text);
+                }
 
-                    callback();
-                });
+                res.status(200).end();
             }
-        });
-
-        async.series(tasks, function(err, resp) {
-            res.status(err ? 500 : 200).end();  
-        });
+        );
     });
+
 };
 
 

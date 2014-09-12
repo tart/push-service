@@ -4,7 +4,6 @@ var express = require('express'),
     logger = require('morgan'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
-    _ = require('lodash'),
     db = require('./db'),
     App = require('./models/App'),
     UserController = require('./controllers/UserController'),
@@ -21,19 +20,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 var authenticationMiddleware = function(req, res, next) {
     var app = res.locals.app = req.get('X-App-Name'),
-        ip = req.ip || req.connection.remoteAddress;
+        ip = req.get('X-Real-IP') || req.get('X-Forwarded-For') || req.ip || req.connection.remoteAdress;
 
     // Check the app name
     if (!app)
         return res.status(417).end();
 
     // Get the app
-    App.findOne({name: app}, function(err, aApp) {
+    App.findOne({name: app}, function(err, data) {
         if (err)
             return res.status(500).end();
 
         // Is request ip allowed?
-        if ((aApp.ips || []).indexOf(ip) > -1)
+        if (data && ((data.ips || []).indexOf(ip) > -1))
             next();
         else 
             res.status(401).end();
@@ -55,28 +54,11 @@ app.use(function(req, res, next) {
     next(err);
 });
 
-// error handlers
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
-    });
-}
-
-// production error handler
-// no stacktraces leaked to user
+// Error handler
+// No stacktraces leaked to user, just log the error.
 app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
+    console.log(err);
+    res.status(err.status || 500).end();
 });
 
 

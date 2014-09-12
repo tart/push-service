@@ -89,11 +89,13 @@ Send push notifications.
 The request body must be in the following structure:
 ```
 {
-    userIds: Array | null, 
+    userIds: Array | string | null, 
     message: {
         en: 'English message',
         tr: 'Turkce mesaj'
     }
 }
 ```
-***When the `userIds` is not provided, the message is sent to everyone in the app.***
+- `message` can just be string if user locale is not important.
+- `userIds` can just be string if notification is being sent to single user.
+- ***When the `userIds` is not provided, the message is sent to everyone in the app.***
