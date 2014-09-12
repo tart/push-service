@@ -39,8 +39,9 @@ PushController.send = function(req, res) {
                 if (err)
                     return res.status(500).end();
 
-                for (var locale in response) {
-                    var devices = _.flatten(response[locale].devices),
+                response.forEach(function(item) {
+                    var locale = item._id,
+                        devices = _.flatten(item.devices),
                         text = null, payload = null;
 
                     // Handle if message is just string
@@ -53,9 +54,10 @@ PushController.send = function(req, res) {
                         payload = req.body.payload;
 
                     // Send
-                    if(text)
+                    if (text)
                         pushService.send(devices, text, payload);
-                }
+                });
+
 
                 res.status(200).end();
             }
