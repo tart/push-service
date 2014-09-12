@@ -41,17 +41,20 @@ PushController.send = function(req, res) {
 
                 for (var locale in response) {
                     var devices = _.flatten(response[locale].devices),
-                        text = null;
+                        text = null, payload = null;
 
                     // Handle if message is just string
-                    if (typeof req.body.message == 'string')
+                    if(typeof req.body.message == 'string')
                         text = req.body.message;
-                    else if (req.body.message[locale])
+                    else if(req.body.message[locale])
                         text = req.body.message[locale];
 
+                    if(typeof req.body.payload == 'string' || typeof req.body.payload == 'object')
+                        payload = req.body.payload;
+
                     // Send
-                    if (text)
-                        pushService.send(devices, text);
+                    if(text)
+                        pushService.send(devices, text, payload);
                 }
 
                 res.status(200).end();

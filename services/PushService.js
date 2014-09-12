@@ -15,8 +15,9 @@ var PushService = function(data) {
  * 
  * @param {Array.<{token, type}>} devices
  * @param {string} text
+ * @param {Object} opt_payload
  */
-PushService.prototype.send = function(devices, text) {
+PushService.prototype.send = function(devices, text, opt_payload) {
     var groupedDevices = _.groupBy(devices, function(device) {
             return device.type;
         });
@@ -31,6 +32,10 @@ PushService.prototype.send = function(devices, text) {
         apnNotification.expiry = Math.floor(Date.now() / 1000) + 3600 * 24; // Expires 1 hour from now.
         apnNotification.sound = "ping.aiff";
         apnNotification.alert = text || '';
+
+        if (!!opt_payload)
+            apnNotification.payload = opt_payload;
+
         // apnNotification.badge = 0;
         this.apnSender.pushNotification(apnNotification, apnDevices);
     }
@@ -40,6 +45,10 @@ PushService.prototype.send = function(devices, text) {
         // Send GCM Notification
         gcmMessage.addData('title', 'title');
         gcmMessage.addData('message', text || '');
+
+        if (!!opt_payload)
+            gcmMessage.addData('payload', JSON.stringify(opt_payload));
+
         var androidDeviceTokens = groupedDevices.android.map(function(device) {
             return device.token;
         });
