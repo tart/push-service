@@ -20,7 +20,8 @@ PushServiceManager.get = function(app, callback) {
 
         var pushService = new PushService({
             gcm: {
-                apiKey: data.gcmApiKey
+                apiKey: data.gcmApiKey,
+                messageTitle: data.displayName
             },
             apn: {
                 'gateway': data.apnGateway,
