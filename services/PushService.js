@@ -43,7 +43,7 @@ PushService.prototype.send = function(devices, text, opt_payload) {
     if (!!groupedDevices.android) {
         var gcmMessage = new gcm.Message();
         // Send GCM Notification
-        gcmMessage.addData('title', 'title');
+        gcmMessage.addData('title', this.gcm.messageTitle);
         gcmMessage.addData('message', text || '');
 
         if (!!opt_payload)
