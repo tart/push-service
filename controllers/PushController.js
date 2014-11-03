@@ -57,6 +57,8 @@ PushController.send = function(req, res) {
                     var locale = item._id,
                         devices = _.flatten(item.devices);
 
+                    console.log('Device count: ' + devices.length);
+
                     // Handle if message is an object
                     if (req.body.message[locale])
                         text = req.body.message[locale];
