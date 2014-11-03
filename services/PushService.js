@@ -54,8 +54,7 @@ PushService.prototype.send = function(devices, text, opt_payload) {
         });
 
         this.gcmSender.send(gcmMessage, androidDeviceTokens, 4, function (err, result) {
-            // Do nothing.
-            // console.log(result);
+            console.log('GCM', err, result);
         });
     }
 
