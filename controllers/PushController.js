@@ -12,8 +12,10 @@ var async = require('async'),
  * @param {Object} res
  */
 PushController.send = function(req, res) {
-    if (!req.body.message)
+    if (!req.body.message) {
+        console.log('Error: Bad request, message is missing.');
         return res.status(400).end();
+    }
 
     // Handle if userIds is just string of single user id.
     var userIds = req.body.userIds;
@@ -26,8 +28,10 @@ PushController.send = function(req, res) {
 
     // Get push service of the app
     PushServiceManager.get(res.locals.app, function(err, pushService) {
-        if (err)
+        if (err) {
+            console.log('Error: Cannot get push service instance.', err);
             return res.status(500).end();
+        }
 
         // Get devices from target users
         User.aggregate(
@@ -36,8 +40,10 @@ PushController.send = function(req, res) {
                 { $group: { _id: '$locale', devices: {$push: '$devices'}}}
             ],
             function (err, response) {
-                if (err)
+                if (err) {
+                    console.log('Error: Mongodb aggregation failed.', err);
                     return res.status(500).end();
+                }
 
                 var text = null, payload = null;
 
@@ -50,6 +56,8 @@ PushController.send = function(req, res) {
                 response.forEach(function(item) {
                     var locale = item._id,
                         devices = _.flatten(item.devices);
+
+                    console.log('Device count: ' + devices.length);
 
                     // Handle if message is an object
                     if (req.body.message[locale])

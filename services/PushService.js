@@ -28,6 +28,8 @@ PushService.prototype.send = function(devices, text, opt_payload) {
             }),
             apnNotification = new apn.Notification();
 
+        console.log('Apple device count: ' + apnDevices.length);
+
         // Send APN Notification
         apnNotification.expiry = Math.floor(Date.now() / 1000) + 3600 * 24; // Expires 1 hour from now.
         apnNotification.sound = "ping.aiff";
@@ -53,9 +55,10 @@ PushService.prototype.send = function(devices, text, opt_payload) {
             return device.token;
         });
 
+        console.log('Android device count: ' + androidDeviceTokens.length);
+
         this.gcmSender.send(gcmMessage, androidDeviceTokens, 4, function (err, result) {
-            // Do nothing.
-            // console.log(result);
+            console.log('GCM', err, result);
         });
     }
 
