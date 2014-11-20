@@ -1,6 +1,7 @@
 var apn = require('apn'),
     gcm = require('node-gcm'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    async = require('async');
 
 
 var PushService = function(data) {
@@ -12,7 +13,7 @@ var PushService = function(data) {
 
 
 /**
- * 
+ *
  * @param {Array.<{token, type}>} devices
  * @param {string} text
  * @param {(Object|string)=} opt_payload
@@ -57,12 +58,23 @@ PushService.prototype.send = function(devices, text, opt_payload) {
 
         console.log('Android device count: ' + androidDeviceTokens.length);
 
-        this.gcmSender.send(gcmMessage, androidDeviceTokens, 4, function (err, result) {
-            console.log('GCM', err, result);
-        });
+        /*
+        * GCM has a cap of 1000 registration ids at a time. We split 1k ids.
+        */
+        var that = this;
+        async.whilst(
+            function () {
+                return (regIds = androidDeviceTokens.splice(0, 1000)).length;
+            },
+            function (callback) {
+                that.gcmSender.send(gcmMessage, regIds, 4, function (err, result) {
+                    console.log('GCM', err, result);
+                    callback(err);
+                });
+            },
+            function (err) {}
+        );
     }
-
-     
 };
 
 module.exports = PushService;
