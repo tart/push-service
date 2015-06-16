@@ -25,7 +25,7 @@ var userSchema = mongoose.Schema({
 
 
 /**
- * 
+ *
  * @param {string} userId
  * @param {string} app
  * @param {Function} cb
@@ -39,12 +39,51 @@ userSchema.statics.getByUserIdAndApp = function(userId, app, cb) {
 
 
 /**
- * 
+ *
  * @param {string} app
  * @param {Function} cb
  */
 userSchema.statics.getByApp = function(app, cb) {
     this.find({ app: app }, cb);
+};
+
+
+userSchema.statics.deleteToken = function(search, token, callback) {
+    this.update(search, {
+        $pull: {
+            devices: {
+                token: token
+            }
+        }
+    }, {
+        multi: true
+    }, callback);
+};
+
+
+userSchema.statics.upsertDevice = function(search, device, callback) {
+    var searchQuery = {app: search.app}, updateId = null;
+    if (search.userId) {
+        searchQuery.userId = search.userId;
+        updateId = search.userId;
+    } else {
+        searchQuery.devices = {$elemMatch: {token: device.token}};
+        updateId = 'anonymous' + new Date().getTime();
+    }
+
+    User.findOneAndUpdate(searchQuery, {
+            userId: updateId,
+            app: search.app,
+            locale: search.locale,
+            $addToSet: {
+                devices: {
+                    type: device.type,
+                    token: device.token
+                }
+            }
+        }, {
+            upsert: true
+        }, callback);
 };
 
 
