@@ -40,7 +40,12 @@ var authenticationMiddleware = function(req, res, next) {
 };
 
 // Routes
-app.get('/', function(req, res) { res.json({}); });
+app.get('/', authenticationMiddleware, function(req, res) {
+    res.json({
+        app: res.locals.app,
+        authenticated: true
+    });
+});
 app.put('/user/:userId', authenticationMiddleware, UserController.upsert);
 app.post('/user', authenticationMiddleware, UserController.upsert);
 app.delete('/user/:userId/device/:token', authenticationMiddleware, UserController.deleteDevice);
