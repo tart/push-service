@@ -19,6 +19,8 @@ PushServiceManager.get = function(app, callback) {
             return callback(err);
 
         var pushService = new PushService({
+            name: data.name,
+            displayName: data.displayName,
             gcm: {
                 apiKey: data.gcmApiKey,
                 messageTitle: data.displayName

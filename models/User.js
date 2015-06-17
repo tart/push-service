@@ -40,6 +40,20 @@ userSchema.statics.getByUserIdAndApp = function(userId, app, cb) {
 
 /**
  *
+ * @param {string} userId
+ * @param {string} app
+ * @param {Function} cb
+ */
+userSchema.statics.getByTokenAndApp = function(token, app, cb) {
+    this.findOne({
+        devices: {$elemMatch: {token: token}},
+        app: app
+    }, cb);
+};
+
+
+/**
+ *
  * @param {string} app
  * @param {Function} cb
  */
