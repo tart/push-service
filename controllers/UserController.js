@@ -12,31 +12,14 @@ UserController.upsert = function(req, res) {
     if (!req.body.locale || !req.body.device)
         return res.status(400).end();
 
-    var searchQuery = {app: res.locals.app}, updateId = null;
-    if (!!req.params.userId) {
-        searchQuery.userId = req.params.userId;
-        updateId = req.params.userId;
-    } else {
-        searchQuery.devices = {$elemMatch: {token: req.body.device.token}};
-        updateId = 'anonymous' + new Date().getTime();
-    }
-
-    User.findOneAndUpdate(searchQuery, {
-            userId: updateId,
-            app: res.locals.app,
-            locale: req.body.locale,
-            $addToSet: {
-                devices: {
-                    type: req.body.device.type,
-                    token: req.body.device.token
-                }
-            }
-        }, {
-            upsert: true
-        }, function(err) {
-            console.log(err);
-            res.status(err ? 500 : 200).end();
-        });
+    User.upsertDevice({
+        app: res.locals.app,
+        userId: req.params.userId,
+        locale: req.body.locale
+    }, req.body.device, function(err) {
+        console.log(err);
+        res.status(err ? 500 : 200).end();
+    });
 };
 
 
@@ -46,22 +29,14 @@ UserController.upsert = function(req, res) {
  * @param {Object} res
  */
 UserController.deleteDevice = function(req, res) {
-    if (!req.params.userId || !req.body.token)
+    if (!req.params.userId || !req.params.token)
         return res.status(400).end();
 
-    User.update({ 
+    User.deleteToken({
         userId: req.params.userId,
         app: res.locals.app
-    }, { 
-        $pull: {
-            devices: {
-                token: req.body.token
-            }
-        }
-    }, { 
-        multi: true 
-    }, function(err, response) {
-      res.status(err ? 500 : 200).end();  
+    }, req.params.token, function(err, response) {
+      res.status(err ? 500 : 200).end();
     });
 };
 
@@ -79,7 +54,7 @@ UserController.delete = function(req, res) {
         userId: req.params.userId,
         app: res.locals.app
     }, function(err, response) {
-      res.status(err ? 500 : 200).end();  
+      res.status(err ? 500 : 200).end();
     });
 };
 
