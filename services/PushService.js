@@ -74,8 +74,11 @@ PushService.prototype.send = function(devices, text, opt_payload) {
                 that.gcmSender.send(gcmMessage, regIds, 4, that.gcmResponseHandler.bind(that, callback, regIds));
             },
             function (err) {
-                if (err) console.log('Err: There was an error while using GCM', err);
-                else console.log('GCM done :)');
+                if (err)
+                    return console.log('Err: There was an error while using GCM', err);
+
+                console.log('GCM done :)');
+                that.removeEmptyUsers();
             }
         );
     }
@@ -165,6 +168,15 @@ PushService.prototype.organizeRedirect = function(oldToken, newToken, callback) 
             ],
             callback);
     }.bind(this));
+};
+
+
+PushService.prototype.removeEmptyUsers = function() {
+    User.remove({devices: {$size: 0}}).exec(function(err) {
+        if (err)
+            return console.log('Err: Could not remove empty user documents.', err);
+        console.log('Empty users were removed.');
+    });
 };
 
 
