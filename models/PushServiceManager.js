@@ -18,7 +18,13 @@ PushServiceManager.get = function(app, callback) {
         if (err)
             return callback(err);
 
+        if (!data)
+            return callback('Err: App not found.');
+
         var pushService = new PushService({
+            name: data.name,
+            displayName: data.displayName,
+            ips: data.ips || [],
             gcm: {
                 apiKey: data.gcmApiKey,
                 messageTitle: data.displayName
